@@ -1,44 +1,47 @@
 import { Injectable } from '@angular/core';
 import { Task } from '../models/task.model';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TaskService {
   private tasks: Task[] = [
-    { id: 1, title: 'Task 1', priority: 'High', status: 'Pending' },
-    { id: 2, title: 'Task 2', priority: 'Medium', status: 'In Progress' },
-    { id: 3, title: 'Task 3', priority: 'Low', status: 'Completed' },
+    { id: 1, title: 'Task 1', description: 'Task 1 description', priority: 'High', status: 'Pending' },
+    { id: 2, title: 'Task 2', description: 'Task 2 description', priority: 'Medium', status: 'In Progress' },
+    { id: 3, title: 'Task 3', description: 'Task 3 description', priority: 'Low', status: 'Completed' }
   ];
 
-  // Get all tasks
+  private tasksSubject = new BehaviorSubject<Task[]>(this.tasks);
+  tasks$ = this.tasksSubject.asObservable();
+
+  constructor() {}
+
   getTasks(): Task[] {
-    return [...this.tasks];  // Return a copy to avoid direct mutation
+    return this.tasks;
   }
 
-  // Add a new task
   addTask(task: Task): void {
-    const newId = this.tasks.length ? Math.max(...this.tasks.map(t => t.id)) + 1 : 1; // Generate next ID
-    this.tasks.push({ ...task, id: newId });
+    const newTask: Task = { ...task, id: this.generateId() };
+    this.tasks.push(newTask);
+    this.tasksSubject.next(this.tasks);
   }
 
-  // Update an existing task
   updateTask(updatedTask: Task): void {
-    const index = this.tasks.findIndex(task => task.id === updatedTask.id);  // Use `id` for unique identification
+    const index = this.tasks.findIndex(t => t.id === updatedTask.id);
     if (index !== -1) {
       this.tasks[index] = updatedTask;
-    } else {
-      console.error(`Task with id ${updatedTask.id} not found for update.`);
+      this.tasksSubject.next(this.tasks);
     }
   }
 
-  // Delete a task
   deleteTask(task: Task): void {
-    const index = this.tasks.findIndex(t => t.id === task.id);  // Find task by `id`
-    if (index !== -1) {
-      this.tasks.splice(index, 1);  // Remove the task by index
-    } else {
-      console.error(`Task with id ${task.id} not found for deletion.`);
-    }
+    this.tasks = this.tasks.filter(t => t.id !== task.id);
+    this.tasksSubject.next(this.tasks);
+  }
+
+  private generateId(): number {
+    const maxId = Math.max(...this.tasks.map(task => task.id), 0);
+    return maxId + 1;
   }
 }

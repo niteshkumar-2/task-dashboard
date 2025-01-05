@@ -12,6 +12,8 @@ import { Task } from '../../models/task.model';
 export class TaskModalComponent {
   taskForm: FormGroup;
   isEditMode: boolean = false;
+  priorityOptions: string[] = ['Low', 'Medium', 'High'];
+  statusOptions: string[] = ['Pending', 'In Progress', 'Completed'];
 
   constructor(
     public dialogRef: MatDialogRef<TaskModalComponent>,
@@ -19,10 +21,10 @@ export class TaskModalComponent {
     private fb: FormBuilder,
     private taskService: TaskService
   ) {
-    this.isEditMode = data?.task ? true : false; // Check if editing an existing task
+    this.isEditMode = !!data?.task;
     this.taskForm = this.fb.group({
-      title: [this.isEditMode ? data.task.title : '', Validators.required],
-      description: [this.isEditMode ? data.task.description : ''],
+      title: [this.isEditMode ? data.task.title : '', [Validators.required, Validators.maxLength(100)]],
+      description: [this.isEditMode ? data.task.description : '', [Validators.maxLength(500)]],
       priority: [this.isEditMode ? data.task.priority : 'Low', Validators.required],
       status: [this.isEditMode ? data.task.status : 'Pending', Validators.required]
     });
@@ -31,20 +33,19 @@ export class TaskModalComponent {
   onSave(): void {
     if (this.taskForm.valid) {
       const taskData: Task = this.taskForm.value;
-
-      // If editing, update the task using its ID
       if (this.isEditMode) {
         const updatedTask: Task = { ...taskData, id: this.data.task.id };
         this.taskService.updateTask(updatedTask);
       } else {
-        // If adding a new task, no need to set the ID; it will be handled in the service
         this.taskService.addTask(taskData);
       }
-      this.dialogRef.close(true); // Close dialog and return 'true' to indicate success
+      this.dialogRef.close(true);
+    } else {
+      this.taskForm.markAllAsTouched();
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close(false); // Close dialog and return 'false' to indicate cancel
+    this.dialogRef.close(false);
   }
 }

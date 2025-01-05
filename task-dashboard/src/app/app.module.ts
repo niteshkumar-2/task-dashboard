@@ -15,21 +15,22 @@ import { MatTableModule } from '@angular/material/table';
 import { AppComponent } from './app.component';
 import { TaskListComponent } from './tasks/components/task-list/task-list.component';
 import { TaskModalComponent } from './tasks/components/task-modal/task-modal.component';
-import { ConfirmDialogComponent } from './tasks/components/confirm-dialog/confirm-dialog.component';
-// import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
-// import { ConfirmDialogComponent } from './tasks/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmationDialogComponent } from './tasks/components/confirm-dialog/confirm-dialog.component';
+import { HttpClientModule } from '@angular/common/http';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     TaskListComponent,
     TaskModalComponent,
-    ConfirmDialogComponent,
+    ConfirmationDialogComponent,
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
+    HttpClientModule,
     ReactiveFormsModule,
     RouterModule.forRoot([{ path: '', component: TaskListComponent }]),
     MatFormFieldModule,

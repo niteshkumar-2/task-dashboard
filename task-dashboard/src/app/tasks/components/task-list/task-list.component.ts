@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { TaskService } from '../../services/task.service';
 import { Task } from '../../models/task.model';
+import { MatDialog } from '@angular/material/dialog';
 import { TaskModalComponent } from '../task-modal/task-modal.component';
+import { ConfirmationDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-task-list',
@@ -21,42 +22,46 @@ export class TaskListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.tasks = this.taskService.getTasks();
-    this.filteredTasks = this.tasks;
+    this.taskService.tasks$.subscribe((tasks: Task[]) => {
+      this.tasks = tasks;
+      this.filteredTasks = tasks;
+    });
   }
 
   applyFilter(): void {
     this.filteredTasks = this.filterStatus
-      ? this.tasks.filter((task) => task.status === this.filterStatus)
+      ? this.tasks.filter(task => task.status === this.filterStatus)
       : this.tasks;
   }
 
-  editTask(task: Task): void {
-    // Open the TaskModalComponent for editing
+  addTask(): void {``
     const dialogRef = this.dialog.open(TaskModalComponent, {
-      data: { task }  // Pass the task data to the modal
+      data: {}
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        // Update the task after the modal is closed
-        this.updateTask(result);
-      }
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.applyFilter();
+    });
+  }
+
+  editTask(task: Task): void {
+    const dialogRef = this.dialog.open(TaskModalComponent, {
+      data: { task }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.applyFilter();
     });
   }
 
   deleteTask(task: Task): void {
-    if (confirm('Are you sure you want to delete this task?')) {
-      this.taskService.deleteTask(task);
-      this.applyFilter();  // Reapply the filter after deletion
-    }
-  }
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
-  private updateTask(updatedTask: Task): void {
-    const index = this.tasks.findIndex(task => task.title === updatedTask.title);
-    if (index !== -1) {
-      this.tasks[index] = updatedTask;
-      this.applyFilter();  // Reapply the filter after the update
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.taskService.deleteTask(task);
+        this.applyFilter();
+      }
+    });
   }
 }
